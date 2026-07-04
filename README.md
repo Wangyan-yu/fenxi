@@ -23,40 +23,40 @@
 ## 项目结构
 
 mall-seg/
-├── MallSeg/ # Django 项目配置
-│ ├── init.py
-│ ├── asgi.py
-│ ├── settings.py # 项目配置文件
-│ ├── urls.py # 根 URL 配置
-│ └── wsgi.py
-├── segmentation/ # 核心应用模块
-│ ├── templates/ # HTML 模板
-│ │ └── segmentation/
-│ │ ├── base.html # 基础模板
-│ │ ├── index.html # 首页
-│ │ ├── upload.html # 数据上传页
-│ │ ├── data_summary.html # 数据摘要页
-│ │ ├── clustering_setup.html # 聚类设置页
-│ │ ├── clustering_results.html # 聚类结果页
-│ │ ├── rfm_clustering_setup.html # RFM 设置页
-│ │ ├── rfm_clustering_results.html # RFM 结果页
-│ │ └── time_series.html # 时间序列分析页
-│ ├── init.py
-│ ├── admin.py
-│ ├── apps.py
-│ ├── forms.py # 表单定义
-│ ├── models.py # 数据模型
-│ ├── services.py # 客户细分服务（聚类、RFM）
-│ ├── timeseries_service.py # 时间序列分析服务
-│ ├── urls.py # 应用 URL 配置
-│ └── views.py # 视图控制器
-├── notebooks/ # Jupyter 笔记本（探索性分析）
-│ └── customer_segmentation_analysis.ipynb
-├── media/ # 上传文件存储目录
+├── MallSeg/                          # Django 项目配置
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py                   # 项目配置文件
+│   ├── urls.py                       # 根 URL 配置
+│   └── wsgi.py
+├── segmentation/                     # 核心应用模块
+│   ├── templates/                    # HTML 模板
+│   │   └── segmentation/
+│   │       ├── base.html             # 基础模板
+│   │       ├── index.html            # 首页
+│   │       ├── upload.html           # 数据上传页
+│   │       ├── data_summary.html     # 数据摘要页
+│   │       ├── clustering_setup.html # 聚类设置页
+│   │       ├── clustering_results.html # 聚类结果页
+│   │       ├── rfm_clustering_setup.html # RFM 设置页
+│   │       ├── rfm_clustering_results.html # RFM 结果页
+│   │       └── time_series.html      # 时间序列分析页
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py                      # 表单定义
+│   ├── models.py                     # 数据模型
+│   ├── services.py                   # 客户细分服务（聚类、RFM）
+│   ├── timeseries_service.py         # 时间序列分析服务
+│   ├── urls.py                       # 应用 URL 配置
+│   └── views.py                      # 视图控制器
+├── notebooks/                        # Jupyter 笔记本（探索性分析）
+│   └── customer_segmentation_analysis.ipynb
+├── media/                            # 上传文件存储目录
 ├── .gitignore
-├── requirements.txt # 依赖清单
-├── manage.py # Django 管理命令
-└── README.md # 项目说明文档
+├── requirements.txt                  # 依赖清单
+├── manage.py                         # Django 管理命令
+└── README.md                         # 项目说明文档
 
 ## 安装运行
 
