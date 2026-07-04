@@ -1,0 +1,36 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}数据摘要 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>📋 数据摘要</h2>
+                <p class="text-muted">数据已成功加载，共 {{ row_count }} 行，{{ column_count }} 列</p>
+            </div>
+            
+            <div class="mb-4">
+                <h5>列名列表</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for col in columns %}
+                    <span class="badge bg-secondary">{{ col }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h5>数据预览（前10行）</h5>
+                {{ sample_data|safe }}
+            </div>
+            
+            <div class="text-center">
+                <a href="{% url 'clustering_analysis' %}" class="btn btn-primary btn-lg me-3">客户聚类分析</a>
+                <a href="{% url 'time_series_analysis' %}" class="btn btn-info btn-lg me-3">时间序列分析</a>
+                <a href="{% url 'upload_data' %}" class="btn btn-outline-secondary btn-lg">上传新数据</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}聚类分析结果 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>🎯 聚类分析结果</h2>
+                <p class="text-muted">已成功将客户分为 {{ n_clusters }} 个细分群体</p>
+            </div>
+            
+            <div class="mb-4">
+                <h5>聚类散点图</h5>
+                {{ cluster_plot|safe }}
+            </div>
+            
+            <div class="mb-4">
+                <h5>PCA 降维可视化</h5>
+                {{ pca_plot|safe }}
+            </div>
+            
+            <div class="mb-4">
+                <h5>聚类统计信息</h5>
+                {{ stats_table|safe }}
+            </div>
+            
+            <div class="mb-4">
+                <h5>聚类描述</h5>
+                <ul class="list-group">
+                    {% for cluster, desc in descriptions.items %}
+                    <li class="list-group-item"><strong>Cluster {{ cluster }}:</strong> {{ desc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="text-center">
+                <a href="{% url 'clustering_analysis' %}" class="btn btn-primary btn-lg me-3">调整参数</a>
+                <a href="{% url 'data_summary' %}" class="btn btn-outline-secondary btn-lg">← 返回数据摘要</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

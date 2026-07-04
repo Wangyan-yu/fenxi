@@ -1,0 +1,22 @@
+diff --git a/segmentation/urls.py b/mall-seg-master/segmentation/urls.py
+index 64c1eaf..674a257 100644
+--- a/segmentation/urls.py
++++ b/mall-seg-master/segmentation/urls.py
+@@ -1,10 +1,16 @@
+ from django.urls import path
+ from . import views
+ 
++
+ urlpatterns = [
+     path('', views.index, name='index'),
+     path('upload/', views.upload_data, name='upload_data'),
+-    path('clustering/', views.clustering_analysis, name='clustering_analysis'),
++    path('summary/', views.data_summary, name='data_summary'),
++    path('rfm/', views.rfm_analysis, name='rfm_analysis'),
++    path('clustering/setup/', views.clustering_setup, name='clustering_setup'),
+     path('clustering/perform/', views.perform_clustering, name='perform_clustering'),
++    path('clustering/results/', views.clustering_results, name='clustering_results'),
++    path('export/<str:format_type>/', views.export_results, name='export_results'),
+     path('download-sample/', views.download_sample_data, name='download_sample_data'),
++    path('download-sample-rfm/', views.download_sample_rfm_data, name='download_sample_rfm_data'),
+ ]

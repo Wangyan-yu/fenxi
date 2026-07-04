@@ -1,0 +1,43 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}聚类分析设置 - 商场顾客细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>🔍 聚类分析设置</h2>
+                <p class="text-muted">选择聚类数量K，系统已根据肘部法则和轮廓系数推荐最优K值</p>
+            </div>
+            
+            <div class="alert alert-success mb-4">
+                <p>💡 <strong>推荐K值:</strong> {{ optimal_k }} 个聚类</p>
+                <p>系统根据轮廓系数分析，建议使用 {{ optimal_k }} 个聚类进行细分。</p>
+            </div>
+            
+            <div class="mb-4">
+                <h5>肘部法则图</h5>
+                {{ elbow_plot|safe }}
+            </div>
+            
+            <div class="mb-4">
+                <h5>轮廓系数图</h5>
+                {{ silhouette_plot|safe }}
+            </div>
+            
+            <form method="post" action="{% url 'perform_clustering' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="n_clusters" class="form-label">选择聚类数量 (K)</label>
+                    <input type="number" class="form-control" id="n_clusters" name="n_clusters" value="{{ optimal_k }}" min="2" max="10" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">执行聚类分析</button>
+                    <a href="{% url 'data_summary' %}" class="btn btn-outline-secondary btn-lg">← 返回数据摘要</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

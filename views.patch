@@ -1,0 +1,355 @@
+diff --git a/segmentation/views.py b/mall-seg-master/segmentation/views.py
+index aa275a6..58369db 100644
+--- a/segmentation/views.py
++++ b/mall-seg-master/segmentation/views.py
+@@ -1,100 +1,292 @@
+-from django.shortcuts import render
++from django.shortcuts import render, redirect
+ from django.http import HttpResponse, HttpResponseBadRequest
+ from django.core.files.storage import FileSystemStorage
+-from segmentation.services import CustomerSegmentationService, load_sample_data
++from django.contrib import messages
++from segmentation.services import CustomerSegmentationService, load_sample_data, load_sample_rfm_data
++from segmentation.forms import DataUploadForm, ClusteringSetupForm
++
+ 
+ def index(request):
++    """首页"""
+     return render(request, 'segmentation/index.html')
+ 
++
+ def upload_data(request):
+-    if request.method == 'POST' and request.FILES.get('data_file'):
+-        data_file = request.FILES['data_file']
++    """数据上传"""
++    if request.method == 'POST':
++        form = DataUploadForm(request.POST, request.FILES)
++        if form.is_valid():
++            data_file = request.FILES['data_file']
++            
++            try:
++                service = CustomerSegmentationService()
++                service.parse_uploaded_file(data_file)
++                
++                # 保存到 session
++                request.session['data_loaded'] = True
++                
++                # 保存文件
++                fs = FileSystemStorage()
++                filename = fs.save(data_file.name, data_file)
++                request.session['data_file'] = filename
++                
++                return redirect('data_summary')
++            except Exception as e:
++                messages.error(request, f"处理文件时出错: {str(e)}")
++    else:
++        form = DataUploadForm()
++    
++    return render(request, 'segmentation/upload.html', {'form': form})
++
++
++def data_summary(request):
++    """数据汇总展示"""
++    if not request.session.get('data_loaded', False):
++        messages.warning(request, "请先上传数据")
++        return redirect('upload_data')
++    
++    try:
++        fs = FileSystemStorage()
++        filename = request.session.get('data_file')
++        file_path = fs.path(filename)
+         
+-        if not data_file.name.endswith('.csv'):
+-            return HttpResponseBadRequest("Only CSV files are allowed")
++        service = CustomerSegmentationService()
++        service.load_data(file_path)
++        
++        summary = service.get_data_summary()
+         
++        return render(request, 'segmentation/data_summary.html', summary)
++    except Exception as e:
++        messages.error(request, f"加载数据时出错: {str(e)}")
++        return redirect('upload_data')
++
++
++def rfm_analysis(request):
++    """RFM 分析"""
++    if not request.session.get('data_loaded', False):
++        messages.warning(request, "请先上传数据")
++        return redirect('upload_data')
++    
++    try:
+         fs = FileSystemStorage()
+-        filename = fs.save(data_file.name, data_file)
++        filename = request.session.get('data_file')
+         file_path = fs.path(filename)
+         
+-        try:
+-            service = CustomerSegmentationService()
+-            service.load_data(file_path)
+-            df = service.preprocess_data()
+-            
+-            request.session['data_file'] = filename
+-            
+-            return render(request, 'segmentation/data_summary.html', {
+-                'columns': df.columns.tolist(),
+-                'sample_data': df.head(10).to_html(index=False),
+-                'row_count': len(df),
+-                'column_count': len(df.columns)
+-            })
+-        except Exception as e:
+-            return HttpResponseBadRequest(f"Error processing file: {str(e)}")
+-    
+-    return render(request, 'segmentation/upload.html')
++        service = CustomerSegmentationService()
++        service.load_data(file_path)
++        
++        # 执行 RFM 分析
++        service.segment_rfm()
++        
++        # 获取统计信息
++        rfm_stats = service.get_rfm_statistics()
++        
++        # 生成可视化
++        visualizations = service.generate_rfm_visualizations()
++        
++        context = {
++            **rfm_stats,
++            **visualizations
++        }
++        
++        return render(request, 'segmentation/rfm_analysis.html', context)
++    except Exception as e:
++        messages.error(request, f"RFM 分析时出错: {str(e)}")
++        return redirect('data_summary')
+ 
+-def clustering_analysis(request):
+-    if 'data_file' not in request.session:
+-        return render(request, 'segmentation/index.html', {'error': 'Please upload data first'})
+-    
+-    data_file = request.session['data_file']
+-    fs = FileSystemStorage()
+-    file_path = fs.path(data_file)
++
++def clustering_setup(request):
++    """聚类参数设置"""
++    if not request.session.get('data_loaded', False):
++        messages.warning(request, "请先上传数据")
++        return redirect('upload_data')
+     
+     try:
++        fs = FileSystemStorage()
++        filename = request.session.get('data_file')
++        file_path = fs.path(filename)
++        
+         service = CustomerSegmentationService()
+         service.load_data(file_path)
+         
++        # 尝试加载 RFM 数据
++        try:
++            service.segment_rfm()
++        except:
++            pass
++        
++        # 寻找最优 K
+         elbow_data = service.find_optimal_k()
+         elbow_plot = service.generate_elbow_plot(elbow_data)
+         silhouette_plot = service.generate_silhouette_plot(elbow_data)
+         optimal_k = elbow_data['optimal_k']
+         
++        if request.method == 'POST':
++            form = ClusteringSetupForm(request.POST, initial={'n_clusters': optimal_k})
++            if form.is_valid():
++                # 保存参数到 session
++                request.session['clustering_params'] = form.cleaned_data
++                return redirect('perform_clustering')
++        else:
++            form = ClusteringSetupForm(initial={'n_clusters': optimal_k})
++        
+         return render(request, 'segmentation/clustering_setup.html', {
++            'form': form,
+             'elbow_plot': elbow_plot,
+             'silhouette_plot': silhouette_plot,
+             'optimal_k': optimal_k
+         })
+     except Exception as e:
+-        return HttpResponseBadRequest(f"Error during analysis: {str(e)}")
++        messages.error(request, f"准备聚类时出错: {str(e)}")
++        return redirect('data_summary')
++
+ 
+ def perform_clustering(request):
+-    if 'data_file' not in request.session:
+-        return render(request, 'segmentation/index.html', {'error': 'Please upload data first'})
++    """执行聚类"""
++    if not request.session.get('data_loaded', False):
++        messages.warning(request, "请先上传数据")
++        return redirect('upload_data')
+     
+-    if request.method == 'POST':
+-        n_clusters = int(request.POST.get('n_clusters', 5))
++    try:
++        fs = FileSystemStorage()
++        filename = request.session.get('data_file')
++        file_path = fs.path(filename)
++        
++        service = CustomerSegmentationService()
++        service.load_data(file_path)
++        
++        # 尝试加载 RFM 数据
++        try:
++            service.segment_rfm()
++        except:
++            pass
++        
++        # 获取参数
++        params = request.session.get('clustering_params', {})
++        n_clusters = params.get('n_clusters', 5)
++        algorithm = params.get('algorithm', 'kmeans')
++        
++        # 执行聚类
++        service.perform_clustering(n_clusters=n_clusters, algorithm=algorithm, params=params)
++        
++        # 保存结果到 session
++        request.session['clustering_done'] = True
+         
+-        data_file = request.session['data_file']
++        return redirect('clustering_results')
++    except Exception as e:
++        messages.error(request, f"执行聚类时出错: {str(e)}")
++        return redirect('clustering_setup')
++
++
++def clustering_results(request):
++    """聚类结果展示"""
++    if not request.session.get('clustering_done', False):
++        messages.warning(request, "请先执行聚类分析")
++        return redirect('clustering_setup')
++    
++    try:
+         fs = FileSystemStorage()
+-        file_path = fs.path(data_file)
++        filename = request.session.get('data_file')
++        file_path = fs.path(filename)
+         
++        service = CustomerSegmentationService()
++        service.load_data(file_path)
++        
++        # 重新加载 RFM 和聚类结果
+         try:
+-            service = CustomerSegmentationService()
+-            service.load_data(file_path)
+-            service.perform_clustering(n_clusters)
+-            
+-            cluster_plot = service.generate_cluster_plot()
+-            pca_plot = service.generate_pca_plot()
+-            cluster_stats = service.get_cluster_statistics().to_html(index=False)
+-            cluster_descriptions = service.get_cluster_descriptions()
+-            
+-            return render(request, 'segmentation/clustering_results.html', {
+-                'cluster_plot': cluster_plot,
+-                'pca_plot': pca_plot,
+-                'stats_table': cluster_stats,
+-                'descriptions': cluster_descriptions,
+-                'optimal_k': n_clusters
+-            })
+-        except Exception as e:
+-            return HttpResponseBadRequest(f"Error performing clustering: {str(e)}")
++            service.segment_rfm()
++        except:
++            pass
++        
++        params = request.session.get('clustering_params', {})
++        n_clusters = params.get('n_clusters', 5)
++        algorithm = params.get('algorithm', 'kmeans')
++        service.perform_clustering(n_clusters=n_clusters, algorithm=algorithm, params=params)
++        
++        # 生成可视化
++        cluster_plot = service.generate_cluster_plot()
++        pca_plot = service.generate_pca_plot()
++        radar_plot = service.generate_radar_plot()
++        
++        # 获取统计信息
++        cluster_stats = service.get_cluster_statistics()
++        stats_html = cluster_stats.to_html(index=False, classes='table table-striped table-hover')
++        
++        # 获取描述
++        descriptions = service.get_cluster_descriptions()
++        
++        # 评估
++        try:
++            evaluation = service.evaluate_clustering()
++        except:
++            evaluation = {'silhouette_score': None, 'n_clusters': n_clusters}
++        
++        return render(request, 'segmentation/clustering_results.html', {
++            'cluster_plot': cluster_plot,
++            'pca_plot': pca_plot,
++            'radar_plot': radar_plot,
++            'stats_table': stats_html,
++            'descriptions': descriptions,
++            'optimal_k': n_clusters,
++            'evaluation': evaluation
++        })
++    except Exception as e:
++        messages.error(request, f"显示聚类结果时出错: {str(e)}")
++        return redirect('clustering_setup')
++
++
++def export_results(request, format_type):
++    """导出结果"""
++    if not request.session.get('data_loaded', False):
++        messages.warning(request, "请先上传数据")
++        return redirect('upload_data')
+     
+-    return render(request, 'segmentation/clustering_setup.html')
++    try:
++        fs = FileSystemStorage()
++        filename = request.session.get('data_file')
++        file_path = fs.path(filename)
++        
++        service = CustomerSegmentationService()
++        service.load_data(file_path)
++        
++        # 尝试加载 RFM 和聚类结果
++        try:
++            service.segment_rfm()
++        except:
++            pass
++        
++        if request.session.get('clustering_done', False):
++            params = request.session.get('clustering_params', {})
++            n_clusters = params.get('n_clusters', 5)
++            algorithm = params.get('algorithm', 'kmeans')
++            service.perform_clustering(n_clusters=n_clusters, algorithm=algorithm, params=params)
++        
++        buffer = service.export_results(format=format_type)
++        
++        if format_type == 'csv':
++            response = HttpResponse(buffer.getvalue(), content_type='text/csv')
++            response['Content-Disposition'] = 'attachment; filename="customer_segmentation_results.csv"'
++        else:
++            response = HttpResponse(buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
++            response['Content-Disposition'] = 'attachment; filename="customer_segmentation_results.xlsx"'
++        
++        return response
++    except Exception as e:
++        messages.error(request, f"导出时出错: {str(e)}")
++        return redirect('index')
++
+ 
+ def download_sample_data(request):
++    """下载示例数据"""
+     buffer = load_sample_data()
+     response = HttpResponse(buffer.getvalue(), content_type='text/csv')
+-    response['Content-Disposition'] = 'attachment; filename=sample_customer_data.csv'
++    response['Content-Disposition'] = 'attachment; filename="sample_customer_data.csv"'
++    return response
++
++
++def download_sample_rfm_data(request):
++    """下载 RFM 示例数据"""
++    buffer = load_sample_rfm_data()
++    response = HttpResponse(buffer.getvalue(), content_type='text/csv')
++    response['Content-Disposition'] = 'attachment; filename="sample_rfm_transaction_data.csv"'
+     return response

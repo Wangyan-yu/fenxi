@@ -1,0 +1,96 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}RFM聚类分析结果 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>🎯 RFM 聚类分析结果</h2>
+                <p class="text-muted">已成功将顾客分为 {{ n_clusters }} 个细分群体</p>
+            </div>
+            
+            <!-- RFM 统计卡片 -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h3>{{ rfm_stats.avg_recency }}</h3>
+                            <p>平均 Recency (天)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h3>{{ rfm_stats.avg_frequency }}</h3>
+                            <p>平均 Frequency (次)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body text-center">
+                            <h3>{{ rfm_stats.avg_monetary|floatformat:2 }}</h3>
+                            <p>平均 Monetary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聚类评估指标 -->
+            {% if evaluation %}
+            <div class="mb-4">
+                <h5>📊 聚类效果评估</h5>
+                <div class="alert alert-info">
+                    <strong>轮廓系数:</strong> {{ evaluation.silhouette_score }} | 
+                    <strong>CH指数:</strong> {{ evaluation.calinski_harabasz_score }} |
+                    <strong>Dunn指数:</strong> {{ evaluation.dunn_index }}
+                    {% if evaluation.evaluation_summary %}
+                    <br><br>{{ evaluation.evaluation_summary }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- 聚类散点图（PCA降维） -->
+            <div class="mb-4">
+                <h5>聚类结果可视化 (PCA降维)</h5>
+                {{ cluster_plot|safe }}
+            </div>
+            
+            <!-- PCA图 -->
+            {% if pca_plot %}
+            <div class="mb-4">
+                <h5>PCA 降维可视化</h5>
+                {{ pca_plot|safe }}
+            </div>
+            {% endif %}
+            
+            <!-- 聚类统计信息 -->
+            <div class="mb-4">
+                <h5>聚类统计信息</h5>
+                {{ stats_table|safe }}
+            </div>
+            
+            <!-- 聚类描述 -->
+            {% if descriptions %}
+            <div class="mb-4">
+                <h5>聚类描述</h5>
+                <ul class="list-group">
+                    {% for cluster, desc in descriptions.items %}
+                    <li class="list-group-item"><strong>Cluster {{ cluster }}:</strong> {{ desc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <div class="text-center">
+                <a href="{% url 'rfm_clustering' %}" class="btn btn-primary btn-lg me-3">调整参数</a>
+                <a href="{% url 'data_summary' %}" class="btn btn-outline-secondary btn-lg">← 返回数据摘要</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}RFM聚类分析设置 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>🔍 RFM 聚类分析设置</h2>
+                <p class="text-muted">基于 RFM 指标进行顾客细分，系统已推荐最优聚类数量</p>
+            </div>
+            
+            <div class="alert alert-success">
+                <strong>💡 推荐K值:</strong> {{ optimal_k }} 个聚类
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <h5 class="text-center mb-3">肘部法则图</h5>
+                            {{ elbow_plot|safe }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <h5 class="text-center mb-3">轮廓系数图</h5>
+                            {{ silhouette_plot|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'perform_rfm_clustering' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="n_clusters" class="form-label">选择聚类数量 (K)</label>
+                    <input type="number" class="form-control" id="n_clusters" name="n_clusters" 
+                           value="{{ optimal_k }}" min="2" max="8" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">执行 RFM 聚类分析</button>
+                    <a href="{% url 'data_summary' %}" class="btn btn-outline-secondary btn-lg">← 返回数据摘要</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

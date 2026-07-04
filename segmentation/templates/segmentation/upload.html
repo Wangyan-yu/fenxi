@@ -1,0 +1,38 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}上传数据 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h2>📤 上传数据文件</h2>
+                <p class="text-muted">支持 CSV、Excel (.xlsx, .xls) 格式，可同时上传多个文件</p>
+            </div>
+            
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data" action="{% url 'upload_data' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="data_files" class="form-label">选择数据文件（可多选）</label>
+                    <input type="file" class="form-control" id="data_files" name="data_files" accept=".csv,.xlsx,.xls" multiple required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">上传并分析</button>
+                </div>
+            </form>
+            
+            <hr class="my-4">
+            
+            <div class="text-center">
+                <p class="text-muted mb-3">没有数据？下载示例数据开始体验</p>
+                <a href="{% url 'download_sample_data' %}" class="btn btn-outline-secondary">下载示例数据</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

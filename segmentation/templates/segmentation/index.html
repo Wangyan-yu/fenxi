@@ -1,0 +1,75 @@
+{% extends 'segmentation/base.html' %}
+
+{% block title %}首页 - 商场客户细分分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-5 rounded-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="{% url 'index' %}">🏪 客户细分系统</a>
+                    <div class="collapse navbar-collapse">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'index' %}">首页</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'upload_data' %}">数据上传</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'clustering_analysis' %}">客户聚类</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'time_series_analysis' %}">时间序列分析</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">🏪 商场客户细分分析系统</h1>
+                <p class="lead text-muted">基于 K-Means 聚类和 时间序列分析 的智能客户细分解决方案</p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-3">📊 K-Means 聚类</h3>
+                            <p class="text-muted mb-0">使用机器学习算法自动识别客户群体，发现潜在的细分市场</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-3">🎯 时间序列分析</h3>
+                            <p class="text-muted mb-0">识别销售数据中的趋势、季节性和周期性规律，从而预测未来销售额的统计方法</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-3">📈 可视化报告</h3>
+                            <p class="text-muted mb-0">交互式图表展示分析结果，直观了解客户分布</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h4 class="mb-4">开始分析您的客户数据</h4>
+                <a href="{% url 'upload_data' %}" class="btn btn-primary btn-lg me-3">
+                    上传数据
+                </a>
+                <a href="{% url 'download_sample_data' %}" class="btn btn-secondary btn-lg">
+                    下载示例数据
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
