@@ -66,7 +66,7 @@ pip install -r requirements.txt
 
 # 启动开发服务器
 python manage.py runserver
-```bash
+```
 
  **访问应用** 打开浏览器访问 http://localhost:8000/
 
