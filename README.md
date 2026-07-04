@@ -21,7 +21,7 @@
 - **前端**：HTML, CSS, JavaScript (Plotly.js) 
 
 ## 项目结构
-
+```
 mall-seg/
 ├── MallSeg/                          # Django 项目配置
 │   ├── __init__.py
@@ -57,6 +57,7 @@ mall-seg/
 ├── requirements.txt                  # 依赖清单
 ├── manage.py                         # Django 管理命令
 └── README.md                         # 项目说明文档
+```
 
 ## 安装运行
 
